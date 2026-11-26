@@ -82,12 +82,16 @@ def main():
         print(f"  └─► {YELLOW}PHP (==) evaluates this hash as scientific notation 0 * 10^... == 0 (TRUE)!{RESET}\n")
 
     if is_php_magic_hash(raw_input):
+        exact_pt = next((pt for pt, (alg, h) in KNOWN_MAGIC_INPUTS.items() if h.lower() == raw_input.strip().lower()), None)
         print(f"{RED}{BOLD}[!] CRITICAL: PHP Magic Hash / Type Juggling Pattern Detected (`0e` + all digits)!{RESET}")
-        print(f"  ├─► {YELLOW}In PHP Loose Comparison (`==`), '{raw_input.strip()}' is evaluated as float 0!{RESET}")
-        print(f"  ├─► {GREEN}{BOLD}Bypass Input (MD5 Digits) :{RESET} {BOLD}240610708{RESET}")
-        print(f"  ├─► {GREEN}{BOLD}Bypass Input (MD5 Letters):{RESET} {BOLD}QNKCDZO{RESET}")
-        print(f"  ├─► {GREEN}{BOLD}Bypass Input (MD5 Mixed)  :{RESET} {BOLD}aabg7XSs{RESET}")
-        print(f"  └─► {GREEN}{BOLD}Bypass Input (SHA-1)      :{RESET} {BOLD}10932435112{RESET}\n")
+        if exact_pt:
+            print(f"  ├─► {GREEN}{BOLD}[Exact Plaintext Match]   :{RESET} {GREEN}{BOLD}{exact_pt}{RESET} (Teks asli dari hash ini!)")
+        print(f"  ├─► {YELLOW}In PHP (`==`), '{raw_input.strip()}' == 0, so ANY of these magic inputs can bypass it:{RESET}")
+        print(f"  ├─► {CYAN}MD5 Magic Digits #1       :{RESET} {BOLD}240610708{RESET}   (md5 -> 0e462097431906509019562988736854)")
+        print(f"  ├─► {CYAN}MD5 Magic Digits #2       :{RESET} {BOLD}314282422{RESET}   (md5 -> 0e990995504821699494520356953734)")
+        print(f"  ├─► {CYAN}MD5 Magic Letters         :{RESET} {BOLD}QNKCDZO{RESET}     (md5 -> 0e830400451993494058024219903391)")
+        print(f"  ├─► {CYAN}MD5 Magic Mixed           :{RESET} {BOLD}aabg7XSs{RESET}    (md5 -> 0e087386482136013740957780965295)")
+        print(f"  └─► {CYAN}SHA-1 Magic Digits        :{RESET} {BOLD}10932435112{RESET} (sha1 -> 0e07766915004133176347055865026311692244)\n")
 
     if args.kpt:
         print(f"{YELLOW}{BOLD}[*] Running Known-Plaintext XOR Key Recovery...{RESET}")
