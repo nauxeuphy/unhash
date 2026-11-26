@@ -4,7 +4,13 @@ import json
 import sys
 from unhash.codecs_engine import run_recipe, auto_peel, CODECS
 from unhash.ciphers import brute_caesar, brute_xor_hex
-from unhash.hashes import identify_hash, crack_hash_wordlist, is_php_magic_hash, KNOWN_MAGIC_INPUTS
+from unhash.hashes import (
+    identify_hash,
+    crack_hash_wordlist,
+    is_php_magic_hash,
+    KNOWN_MAGIC_INPUTS,
+    generate_all_hashes_and_encodings,
+)
 from unhash.web_pentest import is_jwt, inspect_jwt, inspect_cookie, known_plaintext_xor
 
 CYAN = "\033[96m"
@@ -16,13 +22,14 @@ RESET = "\033[0m"
 
 def print_banner():
     print(f"{CYAN}{BOLD}╔══════════════════════════════════════════════════════════════════╗")
-    print(f"║  unhash v1.1 — Zero-Dep CLI CyberChef & Web Pentest Inspector    ║")
+    print(f"║  unhash v1.2 — Zero-Dep CLI CyberChef & Web Pentest Inspector    ║")
     print(f"╚══════════════════════════════════════════════════════════════════╝{RESET}")
 
 def print_php_juggling_guide():
     print(f"{YELLOW}{BOLD}[*] PHP Type Juggling, Magic Hash (0e) & Auth Bypass Payloads:{RESET}\n")
     print(f"  {CYAN}{BOLD}1. MD5 Magic Hashes (untuk `md5($input) == '0e...'` atau `md5($a) == md5($b)`):{RESET}")
-    print(f"     ├─► Input Angka    : {GREEN}{BOLD}240610708{RESET}   -> MD5: 0e462097431906509019562988736854 (== 0)")
+    print(f"     ├─► Input Angka #1 : {GREEN}{BOLD}240610708{RESET}   -> MD5: 0e462097431906509019562988736854 (== 0)")
+    print(f"     ├─► Input Angka #2 : {GREEN}{BOLD}314282422{RESET}   -> MD5: 0e990995504821699494520356953734 (== 0)")
     print(f"     ├─► Input Huruf    : {GREEN}{BOLD}QNKCDZO{RESET}     -> MD5: 0e830400451993494058024219903391 (== 0)")
     print(f"     ├─► Input Campuran : {GREEN}{BOLD}aabg7XSs{RESET}    -> MD5: 0e087386482136013740957780965295 (== 0)")
     print(f"     └─► Dual Collision : {GREEN}{BOLD}?user1=240610708&user2=QNKCDZO{RESET}\n")
@@ -37,10 +44,11 @@ def print_php_juggling_guide():
 def main():
     parser = argparse.ArgumentParser(
         prog="unhash",
-        description="Zero-dependency CLI multi-decoder, JWT/Cookie inspector, XOR forger, PHP Magic Hash & hash analyzer."
+        description="Zero-dependency CLI multi-decoder, hash generator/cracker, JWT/Cookie inspector, and PHP Magic Hash analyzer."
     )
     parser.add_argument("-help", action="help", help="Show this help message and exit")
     parser.add_argument("input", nargs="?", help="Input string, cookie, JWT, hash, or 'php'")
+    parser.add_argument("-e", "--encode", "--hash", action="store_true", help="Encode/hash plaintext into MD5, SHA-1, SHA-256, Base64, Hex, URL")
     parser.add_argument("-a", "--auto", action="store_true", help="Magic Auto-Peel multi-layer encodings (BFS)")
     parser.add_argument("-r", "--recipe", help=f"Deterministic recipe (e.g. hex,rev,b64). Ops: {','.join(CODECS.keys())}")
     parser.add_argument("--jwt", action="store_true", help="Force JWT token inspection & security audit")
@@ -73,6 +81,15 @@ def main():
     if not args.quiet:
         print_banner()
     print(f"{BOLD}[Input]{RESET} {raw_input}\n")
+
+    if args.encode:
+        print(f"{YELLOW}{BOLD}[*] Generating Hashes & Encodings for '{raw_input}':{RESET}")
+        enc = generate_all_hashes_and_encodings(raw_input)
+        items = list(enc.items())
+        for idx, (k, v) in enumerate(items, 1):
+            branch = "└─►" if idx == len(items) else "├─►"
+            print(f"  {branch} {CYAN}{k:12s}:{RESET} {GREEN}{BOLD}{v}{RESET}")
+        return
 
     if raw_input.strip() in KNOWN_MAGIC_INPUTS:
         algo_name, h_val = KNOWN_MAGIC_INPUTS[raw_input.strip()]
@@ -146,15 +163,15 @@ def main():
     if hash_types:
         names = ", ".join(h[0] for h in hash_types)
         print(f"{YELLOW}[i] Possible Hash Format:{RESET} {BOLD}{names}{RESET}")
-        if args.wordlist and hash_types[0][1]:
-            found = crack_hash_wordlist(raw_input, hash_types[0][1], args.wordlist)
-            if found:
-                print(f"  └─► {GREEN}{BOLD}[Cracked!]{RESET} {found}\n")
+        found = crack_hash_wordlist(raw_input, hash_types[0][1], args.wordlist)
+        if found:
+            print(f"  └─► {GREEN}{BOLD}[Cracked Plaintext!] :{RESET} {GREEN}{BOLD}{found}{RESET}\n")
+            return
 
     print(f"{CYAN}{BOLD}[*] Running Magic Auto-Peel (Multi-Layer BFS)...{RESET}")
     candidates = auto_peel(raw_input)
     if not candidates:
-        print(f"  └─► {RED}No automatic decoding chain found. Try --cookie, --caesar, --php, or --kpt.{RESET}")
+        print(f"  └─► {RED}No automatic decoding chain found. Try -e (encode/hash), --cookie, --caesar, --php, or -w <wordlist>.{RESET}")
     else:
         for c_idx, path in enumerate(candidates, 1):
             final_val = path[-1][1]
