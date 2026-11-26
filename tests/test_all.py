@@ -19,3 +19,11 @@ def test_jwt_audit():
     info = inspect_jwt(token)
     assert info["payload"]["user"] == "naufal"
     assert any("CRITICAL" in w for w in info["warnings"])
+
+def test_php_magic_hash_detection():
+    from unhash.hashes import is_php_magic_hash, KNOWN_MAGIC_INPUTS
+    assert is_php_magic_hash("0e462097431906509019562988736854") is True
+    assert is_php_magic_hash("0e830400451993494058024219903391") is True
+    assert is_php_magic_hash("0e12345abc") is False
+    assert "240610708" in KNOWN_MAGIC_INPUTS
+    assert "QNKCDZO" in KNOWN_MAGIC_INPUTS

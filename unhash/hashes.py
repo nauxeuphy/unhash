@@ -11,6 +11,18 @@ HASH_PATTERNS = [
     (r'^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$', "Bcrypt", None),
 ]
 
+KNOWN_MAGIC_INPUTS = {
+    "240610708": ("MD5", "0e462097431906509019562988736854"),
+    "QNKCDZO": ("MD5", "0e830400451993494058024219903391"),
+    "aabg7XSs": ("MD5", "0e087386482136013740957780965295"),
+    "314282422": ("MD5", "0e990995504821699494520356953734"),
+    "10932435112": ("SHA-1", "0e07766915004133176347055865026311692244"),
+}
+
+def is_php_magic_hash(s: str) -> bool:
+    clean = s.strip()
+    return bool(re.match(r'^0+[eE]\d+$', clean))
+
 def identify_hash(s: str):
     clean = s.strip()
     return [(name, algo) for pattern, name, algo in HASH_PATTERNS if re.match(pattern, clean)]

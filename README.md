@@ -82,3 +82,10 @@ unhash "ClVLIh4ASCsCBE8lAxMacFMZV2hdVVotEhhUJQNVAmhSEV4sFxFeaAw%3D" \
 ```bash
 unhash "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJ1c2VyIjoibmF1ZmFsIiwiYWRtaW4iOmZhbHNlfQ."
 ```
+
+### 5. PHP Type Juggling & Magic Hash (`0e`) Detector (`--php`)
+Automatically detects PHP loose comparison (`==`) scientific notation `0e` hashes and outputs ready-to-use MD5/SHA-1 Magic Hash collision and `strcmp()` / `md5()` Array Injection payloads:
+```bash
+unhash php
+unhash 0e462097431906509019562988736854
+```
