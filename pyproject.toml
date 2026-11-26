@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "unhash-cli"
+version = "1.0.0"
+description = "Zero-dependency CLI CyberChef & Web Pentest Cookie/JWT/XOR Inspector"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+{name = "Naufal Al Izza"}
+]
+dependencies = []
+[project.scripts]
+unhash = "unhash.cli:main"
